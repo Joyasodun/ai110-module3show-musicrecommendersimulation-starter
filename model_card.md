@@ -6,102 +6,79 @@
 
 ---
 
-## 2. Intended Use
+## 2. Goal / Task
 
-VibeFinder recommends songs from a small catalog based on a listener's stated
-taste: a favorite genre, a favorite mood, and a target energy level. Given
-those preferences, it ranks every song and returns the top few, each with a
-short explanation of *why* it was picked.
-
-- **What it generates:** a ranked shortlist of songs with human-readable reasons.
-- **Assumptions about the user:** that they can describe their taste as a
-  genre + mood + energy target, and that a single profile captures what they
-  want right now (it has no long-term listening history yet).
-- **Who it's for:** classroom exploration, not real users. It's a simulation
-  for learning how recommenders turn data into ranked predictions.
+VibeFinder suggests songs you might like. You tell it three things: a favorite
+genre, a favorite mood, and how much energy you want. It then looks at every
+song in the catalog and picks the top few for you. Each pick comes with a short
+reason, so you can see why it was chosen. It is not trying to predict the
+future. It is just ranking the songs it has and putting the best matches first.
 
 ---
 
-## 3. How the Model Works
+## 3. Data Used
 
-Think of each song as having a few labels and dials: a genre (afrobeats, pop),
-a mood (happy, chill), and numbers for how energetic and how positive it feels.
-You tell VibeFinder your favorite genre, favorite mood, and how energetic you
-want the music. For every song, it awards points for each thing that lines up
-with your taste, adds the points into one score, and then sorts all the songs
-so the best matches come first.
-
-The points aren't all equal. Mood counts the most, because the mood you're in
-is really what you want to hear. Genre counts, but a little less, because the
-genre labels are messy. Energy and positivity add smaller amounts based on how
-close the song is to what you asked for.
-
-The two biggest changes I made from the starter logic:
-
-1. **Mood and genre became separate signals.** The starter code said "mood"
-   but was secretly comparing genres, and the real mood label was never used.
-2. **Matches can be "close," not just exact.** Instead of a song being either a
-   perfect match or a total miss, near-matches earn partial credit — so
-   *afrobeats amapiano* counts as close to *afrobeats*, and an *uplifting*
-   song counts as close to *happy*.
+- **Size:** 17 songs. Small on purpose, so it is easy to read and test.
+- **Features per song:** title, artist, genre, mood, energy, tempo, valence
+  (how positive it feels), danceability, and acousticness.
+- **Genres:** pop, lofi, rock, ambient, jazz, synthwave, indie pop, rap, pop
+  rock, afrobeats, afrobeats amapiano, funk pop, reggaeton.
+- **Moods:** happy, chill, intense, relaxed, moody, focused, sad, uplifting,
+  hopeful, playful, romantic.
+- **Limits:** The catalog is tiny. It leans toward upbeat pop and afrobeats.
+  Many kinds of music (classical, country, metal, and most non-Western genres)
+  are not in it. If a song is not in the data, it can never be suggested.
 
 ---
 
-## 4. Data
+## 4. Algorithm Summary
 
-- **Catalog size:** 17 songs (I expanded the starter set from 10).
-- **Genres represented:** pop, lofi, rock, ambient, jazz, synthwave, indie pop,
-  rap, pop rock, afrobeats, afrobeats amapiano, funk pop, reggaeton.
-- **Moods represented:** happy, chill, intense, relaxed, moody, focused, sad,
-  uplifting, hopeful, playful, romantic.
-- **Changes I made:** added 7 songs, including several afrobeats/afrobeats
-  amapiano tracks that reflect my own taste.
-- **What's missing:** the catalog is tiny and skewed toward upbeat pop and
-  afrobeats. Whole traditions (classical, country, metal, most non-Western
-  genres) aren't represented at all, so it can't recommend what isn't there.
+Think of scoring like giving out points. Each song starts at zero. Then it
+earns points for each way it matches your taste:
 
----
+- **Mood** is worth the most (30%). The mood you want is what you really want
+  to hear.
+- **Positivity (valence)** and **preference** are next (20% each). Preference is
+  a slot for past likes, but there is no like history yet, so it is 0 for now.
+- **Energy** and **genre** are worth less (15% each). Genre counts less because
+  the genre labels are messy.
 
-## 5. Strengths
+Matches do not have to be exact. A close match earns partial points. So
+*afrobeats amapiano* counts as close to *afrobeats*, and *uplifting* counts as
+close to *happy*. Once every song has a score, the songs are sorted from highest
+to lowest, and the top few are shown.
 
-- Works well for a clear, upbeat profile — e.g. afrobeats/happy surfaces
-  *Ogaranya* and *Gratitude* at the top, which matched my intuition.
-- The partial-credit matching captures "these are basically the same vibe"
-  cases that exact matching would miss (amapiano ~ afrobeats, uplifting ~ happy).
-- Every recommendation comes with a breakdown of the points it earned, so the
-  ranking is transparent, not a black box.
+Two things I changed from the starter code:
 
----
-
-## 6. Limitations and Bias
-
-**The weakness I confirmed during testing — a "high-energy filter bubble."**
-The scoring only rewards energy for being *close* to your target, but valence
-(positivity) is added as a flat bonus regardless of what you asked for. That
-means loud, upbeat, positive songs like *Cake by the Ocean* and *Gym Hero*
-leak into the top 5 of profiles they don't belong to — they showed up for the
-sad-mood profile and even the intense-rock profile. In plain terms: happy,
-high-energy pop keeps crashing lists where it wasn't invited, because the
-system likes positivity for its own sake. Combined with the catalog leaning
-toward pop/afrobeats (6 of 17 songs), quieter or darker tastes get a thinner,
-less accurate shortlist — a filter bubble that favors the loud and the sunny.
-
-Other limitations:
-
-- **Ignores several features it has data for:** tempo, danceability, and
-  acousticness are loaded but not scored.
-- **No real preference history:** the preference slot exists but contributes 0
-  until there's rating data, so it can't learn from what you actually played.
-- **Hand-built "related" lists:** which moods/genres count as close is a fixed
-  table I wrote, so it reflects my judgment and can be wrong or incomplete.
-- **Catalog bias:** because the data leans pop/afrobeats, those tastes get good
-  results while underrepresented genres get thin or no recommendations.
-- **Single-profile overfitting:** one genre + mood + energy can dominate the
-  ranking, crowding out variety.
+1. Mood and genre are now two separate signals. The starter said "mood" but was
+   really comparing genres.
+2. Close matches now earn partial credit, instead of only exact matches.
 
 ---
 
-## 7. Evaluation
+## 5. Observed Behavior / Biases
+
+The main pattern I found is a **high-energy filter bubble**. The system gives
+every upbeat, positive song bonus points, no matter what mood you asked for.
+Energy only earns points for being close to your target, but positivity is a
+free bonus. So loud, happy songs like *Cake by the Ocean* and *Gym Hero* keep
+showing up on lists where they do not belong. They appeared for the *sad*
+profile and even for the *intense rock* profile. In plain words: cheerful pop
+keeps crashing lists it was not invited to. The small, pop-heavy catalog makes
+this worse, so quieter or darker tastes get thinner, less accurate results.
+
+Other limits:
+
+- It ignores data it already has: tempo, danceability, and acousticness are
+  loaded but never scored.
+- It has no real like history, so it cannot learn from what you played.
+- The "close match" lists are hand-written by me, so they reflect my judgment
+  and can be wrong.
+- One genre + mood + energy can dominate the list, which crowds out variety.
+
+---
+
+## 6. Evaluation Process
 
 ### Profiles tested
 
@@ -246,7 +223,7 @@ The two adversarial profiles are where the logic showed its seams:
   one true sad song first, then falls back to *loud, happy pop* (*Gym Hero*,
   *Sunrise City*) — the opposite of a sad mood. The user asked for sad, and by
   #3 the list is cheerful. That's the surprise, and it points straight at the
-  bias in Section 6.
+  bias in the "Observed Behavior / Biases" section.
 - **Unknown Taste** (polka / grief) matches nothing, so every score collapses
   to roughly 0.27 and the ranking is decided almost entirely by valence. The
   system never says "I have nothing for you" — it confidently recommends happy
@@ -328,7 +305,8 @@ EXPERIMENT (2x energy, 0.5x genre, sum=1.0) — Deep Intense Rock
 moved (the strong mood/genre matches still win), but energy-heavy songs climbed
 — *Cake by the Ocean* rose from #3 to a near-tie for #2 in the pop list, and
 *Ogaranya* jumped from #5 to #4. Weakening genre made "close energy + upbeat"
-enough to outrank a real genre match. This confirms the finding in Section 6:
+enough to outrank a real genre match. This confirms the "Observed Behavior /
+Biases" finding:
 leaning harder on energy amplifies the high-energy filter bubble rather than
 fixing it. I reverted to the original weights afterward, so
 [src/recommender.py](src/recommender.py) is unchanged.
@@ -340,23 +318,52 @@ fixing it. I reverted to the original weights afterward, so
 
 ---
 
-## 8. Future Work
+## 7. Intended Use and Non-Intended Use
 
-- Score the unused features (tempo, danceability, acousticness).
-- Wire up real preference history so the model learns from what you liked.
-- Add diversity to the top results so one genre/mood can't dominate.
-- Replace the hand-written "related mood/genre" tables with something learned
-  or data-driven.
-- Handle multi-mood or shifting tastes instead of a single fixed profile.
+**What it is for:**
+
+- Learning how a recommender works. It shows how scoring and sorting turn data
+  into a ranked list.
+- Trying out different tastes and seeing why each song was picked.
+- A small, safe sandbox for class experiments.
+
+**What it should not be used for:**
+
+- Real music apps or real users. The catalog is tiny and biased.
+- Any real decision that matters. It cannot judge songs it does not have.
+- Claiming to know someone's true taste. It only reads three inputs, not a
+  person.
+
+---
+
+## 8. Ideas for Improvement
+
+- Use the data it already ignores: tempo, danceability, and acousticness.
+- Add real like history so it can learn from what you actually play.
+- Add variety to the top 5 so one genre or mood cannot take over the list.
 
 ---
 
 ## 9. Personal Reflection
 
-<!-- A few sentences in your own voice. Some things you could touch on: -->
-<!-- - Building this made "recommendation" concrete: it's really just scoring   -->
-<!--   every item and sorting. The judgment is all in how you weight things.    -->
-<!-- - The Gratitude example showed me how easily a scoring choice can bury a   -->
-<!--   good result, and how small a tweak can fix it.                           -->
-<!-- - It made me think about how the data you include (and leave out) quietly  -->
-<!--   decides what any recommender can ever suggest.                           -->
+**Biggest learning moment.** The big one was realizing a recommender is not
+magic. It is just scoring every song and sorting them. All the "smarts" live in
+how you weight things. Once I saw that, the whole system stopped feeling
+mysterious.
+
+**How AI tools helped, and when I checked them.** AI tools were great for
+speeding up boring parts, like drafting the extra profiles and spotting the
+filter-bubble bias. But I had to double-check the math. When I ran my
+weight-shift experiment, the AI's first version left the weights adding up to
+more than 1.0, which is not valid. I caught it, and we fixed it so the weights
+sum to exactly 1.0. That reminded me the AI can be confidently wrong, so I
+verify numbers myself.
+
+**What surprised me.** I was surprised how much a simple points-and-sort system
+can "feel" like a real recommendation. There is no learning and no neural net,
+yet the top picks often felt right. It made me see that a lot of "AI feel" is
+really just good scoring choices.
+
+**What I would try next.** I would add real like history so it learns from me,
+score the unused features like tempo and danceability, and add variety so the
+same happy pop songs stop crashing every list.
