@@ -5,19 +5,25 @@ from dataclasses import dataclass, field
 # ---------------------------------------------------------------------------
 # Vibe definition (my personal weights)
 #
-#   valence     30%  -> emotional positivity, use the valence column as-is
-#   mood        30%  -> approximated by genre match
-#   energy      20%  -> use the energy column as-is
+#   mood        30%  -> real mood-column match (strongest intent signal)
+#   valence     20%  -> emotional positivity, use the valence column as-is
+#   energy      15%  -> use the energy column as-is
+#   genre       15%  -> genre match (tolerant of messy labels)
 #   preference  20%  -> "how the user rated songs before"
+#
+# Mood is weighted above genre: mood is what the listener actually feels and
+# is a clean categorical, while genre labels in songs.csv are noisy
+# (afrobeats vs afrobeats amapiano), so genre earns fewer, softer points.
 #
 # Option B: preference gets a real 20% slot in the formula, but there is no
 # rating history in songs.csv yet, so preference_score() returns 0 for now.
 # When rating history exists, only preference_score() needs to change --
 # the weights and the rest of the formula stay untouched.
 # ---------------------------------------------------------------------------
-W_VALENCE = 0.30
 W_MOOD = 0.30
-W_ENERGY = 0.20
+W_VALENCE = 0.20
+W_ENERGY = 0.15
+W_GENRE = 0.15
 W_PREFERENCE = 0.20
 
 
@@ -62,9 +68,23 @@ def valence_score(song_valence: float) -> float:
     return float(song_valence)
 
 
-def mood_score(favorite_genre: str, song_genre: str) -> float:
-    """Mood approximated by genre: 1.0 if the genre matches, else 0.0."""
-    return 1.0 if favorite_genre.lower() == song_genre.lower() else 0.0
+def mood_score(favorite_mood: str, song_mood: str) -> float:
+    """Mood match: 1.0 if the user's favorite mood matches the song's mood."""
+    return 1.0 if favorite_mood.lower() == song_mood.lower() else 0.0
+
+
+def genre_score(favorite_genre: str, song_genre: str) -> float:
+    """
+    Genre match, tolerant of the messy labels in songs.csv.
+    1.0 = exact, 0.6 = one label contains the other (afrobeats ~
+    afrobeats amapiano), else 0.0.
+    """
+    fav, sg = favorite_genre.lower(), song_genre.lower()
+    if fav == sg:
+        return 1.0
+    if fav and (fav in sg or sg in fav):
+        return 0.6
+    return 0.0
 
 
 def energy_score(target_energy: float, song_energy: float) -> float:
@@ -113,23 +133,36 @@ def preference_score(taste: Optional[Dict[str, float]],
 
 def _weighted_score(
     favorite_genre: str,
+    favorite_mood: str,
     target_energy: float,
     taste: Optional[Dict[str, float]],
     song_genre: str,
+    song_mood: str,
     song_valence: float,
     song_energy: float,
 ) -> Tuple[float, List[str]]:
-    """Combine the four vibe pieces into one score plus human-readable reasons."""
+    """Combine the vibe pieces into one score plus human-readable reasons."""
     v = valence_score(song_valence)
-    m = mood_score(favorite_genre, song_genre)
+    m = mood_score(favorite_mood, song_mood)
+    g = genre_score(favorite_genre, song_genre)
     e = energy_score(target_energy, song_energy)
     p = preference_score(taste, song_valence, song_energy)
 
-    score = W_VALENCE * v + W_MOOD * m + W_ENERGY * e + W_PREFERENCE * p
+    score = (
+        W_MOOD * m
+        + W_VALENCE * v
+        + W_ENERGY * e
+        + W_GENRE * g
+        + W_PREFERENCE * p
+    )
 
     reasons: List[str] = []
     if m == 1.0:
+        reasons.append(f"matches your {song_mood} mood")
+    if g >= 1.0:
         reasons.append(f"matches your {song_genre} vibe")
+    elif g > 0.0:
+        reasons.append(f"close to your {favorite_genre} taste")
     if v >= 0.7:
         reasons.append("upbeat, positive feel")
     elif v <= 0.4:
@@ -170,9 +203,11 @@ class Recommender:
             taste = self._taste(user)
         return _weighted_score(
             favorite_genre=user.favorite_genre,
+            favorite_mood=user.favorite_mood,
             target_energy=user.target_energy,
             taste=taste,
             song_genre=song.genre,
+            song_mood=song.mood,
             song_valence=song.valence,
             song_energy=song.energy,
         )
@@ -222,9 +257,11 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     taste = build_taste_profile(user_prefs.get("liked_songs", []))
     return _weighted_score(
         favorite_genre=user_prefs.get("genre", ""),
+        favorite_mood=user_prefs.get("mood", ""),
         target_energy=float(user_prefs.get("energy", 0.0)),
         taste=taste,
         song_genre=song.get("genre", ""),
+        song_mood=song.get("mood", ""),
         song_valence=float(song.get("valence", 0.0)),
         song_energy=float(song.get("energy", 0.0)),
     )

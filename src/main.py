@@ -15,8 +15,13 @@ from recommender import load_songs, recommend_songs
 def main() -> None:
     songs = load_songs("data/songs.csv") 
 
-    # Starter example profile
-    user_prefs = {"genre": "pop", "mood": "happy", "energy": 0.8}
+    # My taste profile: someone who loves upbeat, high-energy afrobeats.
+    # Target values for the features my recommender scores on.
+    user_prefs = {
+        "genre": "afrobeats",   # favorite_genre  -> drives the mood/genre match
+        "mood": "happy",        # favorite_mood
+        "energy": 0.75,         # target_energy   -> songs near this level score higher
+    }
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
 
