@@ -68,9 +68,30 @@ def valence_score(song_valence: float) -> float:
     return float(song_valence)
 
 
+# Moods that read as "close enough" to each other -> partial mood credit.
+# Symmetric: if A lists B, B is treated as related to A too.
+MOOD_NEIGHBORS = {
+    "happy": {"uplifting", "hopeful", "playful", "joyful", "upbeat"},
+    "chill": {"relaxed", "focused", "calm"},
+    "sad": {"moody", "melancholy"},
+    "intense": {"energetic", "hype"},
+    "romantic": {"hopeful", "moody"},
+}
+
+
+def _mood_related(a: str, b: str) -> bool:
+    """True if a and b are listed as neighboring moods (either direction)."""
+    return b in MOOD_NEIGHBORS.get(a, set()) or a in MOOD_NEIGHBORS.get(b, set())
+
+
 def mood_score(favorite_mood: str, song_mood: str) -> float:
-    """Mood match: 1.0 if the user's favorite mood matches the song's mood."""
-    return 1.0 if favorite_mood.lower() == song_mood.lower() else 0.0
+    """Mood match: 1.0 exact, 0.6 for a related mood (happy ~ uplifting), else 0.0."""
+    fav, sm = favorite_mood.lower(), song_mood.lower()
+    if fav == sm:
+        return 1.0
+    if fav and _mood_related(fav, sm):
+        return 0.8
+    return 0.0
 
 
 def genre_score(favorite_genre: str, song_genre: str) -> float:
@@ -159,8 +180,10 @@ def _weighted_score(
     # Each reason names the points that signal actually contributed to the
     # score (weight x sub-score), so the user can see *why* a song ranked.
     reasons: List[str] = []
-    if m == 1.0:
+    if m >= 1.0:
         reasons.append(f"mood match: {song_mood} (+{W_MOOD * m:.2f})")
+    elif m > 0.0:
+        reasons.append(f"related mood: {song_mood} (+{W_MOOD * m:.2f})")
     if g >= 1.0:
         reasons.append(f"genre match: {song_genre} (+{W_GENRE * g:.2f})")
     elif g > 0.0:

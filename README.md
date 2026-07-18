@@ -137,21 +137,21 @@ Top 5 recommendations for happy / afrobeats:
    Score: 0.76
    Why:   mood match: happy (+0.30), genre match: afrobeats (+0.15), upbeat, positive feel (+0.16), energy close to target (+0.15)
 
-2. Rooftop Lights - Indigo Parade
+2. Gratitude - Asake
+   Score: 0.63
+   Why:   related mood: uplifting (+0.24), partial genre match: afrobeats amapiano (+0.09), upbeat, positive feel (+0.15), energy close to target (+0.15)
+
+3. Rooftop Lights - Indigo Parade
    Score: 0.61
    Why:   mood match: happy (+0.30), upbeat, positive feel (+0.16), energy close to target (+0.15)
 
-3. Sunrise City - Neon Echo
+4. Sunrise City - Neon Echo
    Score: 0.61
    Why:   mood match: happy (+0.30), upbeat, positive feel (+0.17), energy close to target (+0.14)
 
-4. Gratitude - Asake
-   Score: 0.39
-   Why:   partial genre match: afrobeats amapiano (+0.09), upbeat, positive feel (+0.15), energy close to target (+0.15)
-
 5. Cake by the Ocean - DNCE
-   Score: 0.31
-   Why:   upbeat, positive feel (+0.18), energy close to target (+0.13)
+   Score: 0.55
+   Why:   related mood: playful (+0.24), upbeat, positive feel (+0.18), energy close to target (+0.13)
 ```
 
 ---
