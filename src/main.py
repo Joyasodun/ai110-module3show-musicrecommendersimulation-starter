@@ -25,11 +25,11 @@ def main() -> None:
     songs = load_songs(DATA_PATH)
     print(f"Loaded songs: {len(songs)}")
 
-    # Default demo profile: someone who wants happy, upbeat pop.
+    # My taste profile: someone who loves upbeat, high-energy afrobeats.
     user_prefs = {
-        "genre": "pop",    # favorite_genre
-        "mood": "happy",   # favorite_mood
-        "energy": 0.8,     # target_energy -> songs near this level score higher
+        "genre": "afrobeats",   # favorite_genre
+        "mood": "happy",        # favorite_mood
+        "energy": 0.75,         # target_energy -> songs near this level score higher
     }
 
     recommendations = recommend_songs(user_prefs, songs, k=5)

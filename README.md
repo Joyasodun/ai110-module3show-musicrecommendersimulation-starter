@@ -125,33 +125,33 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Sample Recommendation Output
 
-Running `python -m src.main` with the default **pop / happy** profile
-(`genre=pop, mood=happy, energy=0.8`) produces:
+Running `python -m src.main` with the demo **afrobeats / happy** profile
+(`genre=afrobeats, mood=happy, energy=0.75`) produces:
 
 ```
 Loaded songs: 17
 
-Top 5 recommendations for happy / pop:
+Top 5 recommendations for happy / afrobeats:
 
-1. Sunrise City - Neon Echo
-   Score: 0.77
-   Why:   mood match: happy (+0.30), genre match: pop (+0.15), upbeat, positive feel (+0.17), energy close to target (+0.15)
+1. Ogaranya - Adekunle Gold
+   Score: 0.76
+   Why:   mood match: happy (+0.30), genre match: afrobeats (+0.15), upbeat, positive feel (+0.16), energy close to target (+0.15)
 
 2. Rooftop Lights - Indigo Parade
-   Score: 0.70
-   Why:   mood match: happy (+0.30), partial genre match: indie pop (+0.09), upbeat, positive feel (+0.16), energy close to target (+0.14)
+   Score: 0.61
+   Why:   mood match: happy (+0.30), upbeat, positive feel (+0.16), energy close to target (+0.15)
 
-3. Ogaranya - Adekunle Gold
-   Score: 0.60
-   Why:   mood match: happy (+0.30), upbeat, positive feel (+0.16), energy close to target (+0.14)
+3. Sunrise City - Neon Echo
+   Score: 0.61
+   Why:   mood match: happy (+0.30), upbeat, positive feel (+0.17), energy close to target (+0.14)
 
-4. Gym Hero - Max Pulse
-   Score: 0.43
-   Why:   genre match: pop (+0.15), upbeat, positive feel (+0.15), energy close to target (+0.13)
+4. Gratitude - Asake
+   Score: 0.39
+   Why:   partial genre match: afrobeats amapiano (+0.09), upbeat, positive feel (+0.15), energy close to target (+0.15)
 
-5. Never Say Never - Justin Bieber
-   Score: 0.42
-   Why:   genre match: pop (+0.15), energy close to target (+0.15)
+5. Cake by the Ocean - DNCE
+   Score: 0.31
+   Why:   upbeat, positive feel (+0.18), energy close to target (+0.13)
 ```
 
 ---
