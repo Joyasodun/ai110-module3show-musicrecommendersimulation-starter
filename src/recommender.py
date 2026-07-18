@@ -156,21 +156,25 @@ def _weighted_score(
         + W_PREFERENCE * p
     )
 
+    # Each reason names the points that signal actually contributed to the
+    # score (weight x sub-score), so the user can see *why* a song ranked.
     reasons: List[str] = []
     if m == 1.0:
-        reasons.append(f"matches your {song_mood} mood")
+        reasons.append(f"mood match: {song_mood} (+{W_MOOD * m:.2f})")
     if g >= 1.0:
-        reasons.append(f"matches your {song_genre} vibe")
+        reasons.append(f"genre match: {song_genre} (+{W_GENRE * g:.2f})")
     elif g > 0.0:
-        reasons.append(f"close to your {favorite_genre} taste")
+        reasons.append(
+            f"partial genre match: {song_genre} (+{W_GENRE * g:.2f})"
+        )
     if v >= 0.7:
-        reasons.append("upbeat, positive feel")
+        reasons.append(f"upbeat, positive feel (+{W_VALENCE * v:.2f})")
     elif v <= 0.4:
-        reasons.append("darker, moodier feel")
+        reasons.append(f"darker, moodier feel (+{W_VALENCE * v:.2f})")
     if e >= 0.8:
-        reasons.append("energy is close to what you want")
+        reasons.append(f"energy close to target (+{W_ENERGY * e:.2f})")
     if p >= 0.8:
-        reasons.append("close to the vibe you liked before")
+        reasons.append(f"close to what you liked before (+{W_PREFERENCE * p:.2f})")
     if not reasons:
         reasons.append("a reasonable overall vibe match")
 
@@ -268,14 +272,14 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
 
 
 def recommend_songs(user_prefs: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
-    """
-    Functional implementation of the recommendation logic.
-    Returns (song_dict, score, explanation), ranked best-first.
-    """
-    scored = []
-    for song in songs:
-        score, reasons = score_song(user_prefs, song)
-        explanation = ", ".join(reasons)
-        scored.append((song, score, explanation))
-    scored.sort(key=lambda item: item[1], reverse=True)
+    """Score every song, then return the top k ranked highest-to-lowest."""
+    # Judge every song into (song, score, explanation) tuples...
+    scored = [
+        (song, score, ", ".join(reasons))
+        for song in songs
+        for score, reasons in [score_song(user_prefs, song)]
+    ]
+    # ...then rank. sorted() returns a NEW sorted list, leaving `songs`
+    # untouched; reverse=True puts the highest score first.
+    scored = sorted(scored, key=lambda item: item[1], reverse=True)
     return scored[:k]
