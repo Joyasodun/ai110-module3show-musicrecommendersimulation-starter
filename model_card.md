@@ -2,13 +2,13 @@
 
 ## 1. Model Name
 
-**VibeFinder 1.0**
+**CheckDaVibezz**
 
 ---
 
 ## 2. Goal / Task
 
-VibeFinder suggests songs you might like. You tell it three things: a favorite
+CheckDaVibezz suggests songs you might like. You tell it three things: a favorite
 genre, a favorite mood, and how much energy you want. It then looks at every
 song in the catalog and picks the top few for you. Each pick comes with a short
 reason, so you can see why it was chosen. It is not trying to predict the
@@ -216,6 +216,13 @@ song) beat *Never Say Never* (an actual *pop* song), because the valence bonus
 for being upbeat outweighed the exact genre match. That was my first hint that
 positivity was pulling too hard.
 
+I also want to note that to get *Ogaranya* and *Gratitude* to rank close to each
+other, I had to teach the system that some labels mean almost the same thing. I
+set it up so that *afrobeats* and *afrobeats amapiano* count as basically the
+same genre, and *happy* and *uplifting* count as basically the same mood. Before
+that, the system treated those labels as totally foreign to each other, which
+pushed two very similar songs far apart.
+
 The two adversarial profiles are where the logic showed its seams:
 
 - **High-Energy Sad** exposes a contradiction the system can't satisfy: the
@@ -228,6 +235,11 @@ The two adversarial profiles are where the logic showed its seams:
   to roughly 0.27 and the ranking is decided almost entirely by valence. The
   system never says "I have nothing for you" — it confidently recommends happy
   afrobeats to someone who asked for polka grief.
+
+Another weak spot is the definitions behind the algorithm — how each attribute
+is scored and which words are treated as related. Those are hand-written by me,
+so they are a place we still need to work on to make the results as accurate as
+possible.
 
 ### Profile-to-profile comparisons
 
@@ -341,6 +353,7 @@ fixing it. I reverted to the original weights afterward, so
 - Use the data it already ignores: tempo, danceability, and acousticness.
 - Add real like history so it can learn from what you actually play.
 - Add variety to the top 5 so one genre or mood cannot take over the list.
+- Make sure defnitions are related closer to one another to improve accuracy, maybe get more specific and into detail but that would require more time and coding and better training.
 
 ---
 
